@@ -578,6 +578,35 @@ const EditableText = ({ text, onSave }) => {
     ];
 
     useEffect(() => {
+        console.log('useEffect triggered. isEditing:', isEditing);
+
+        if (isEditing) {
+            if (!quillRef.current && editorRef.current) {
+                console.log('Initializing Quill editor');
+                quillRef.current = new Quill(editorRef.current, {
+                    theme: 'snow',
+                    modules: { toolbar: toolbarOptions },
+                });
+
+                quillRef.current.on('text-change', () => {
+                    console.log('Text changed in Quill editor');
+                    setCurrentText(quillRef.current.root.innerHTML);
+                });
+            }
+
+            console.log('Updating Quill editor content:', currentText);
+            if (quillRef.current) {
+                quillRef.current.root.innerHTML = currentText;
+            }
+        } else {
+            // Cleanup the Quill editor if not editing
+            if (quillRef.current) {
+                console.log('Destroying Quill editor');
+                quillRef.current.off('text-change'); // Remove listeners
+                quillRef.current = null; // Reset editor
+            }
+        }
+/*
         if (!quillRef.current && editorRef.current) {
             quillRef.current = new Quill(editorRef.current, {
                 theme: 'snow',
@@ -587,8 +616,14 @@ const EditableText = ({ text, onSave }) => {
             quillRef.current.on('text-change', () => {
                 setCurrentText(quillRef.current.root.innerHTML);
             });
+            //quillRef.current.root.innerHTML = currentText;
+        }
+        if (isEditing && quillRef.current) {
+            // Set the editor content to the current text when entering edit mode
             quillRef.current.root.innerHTML = currentText;
         }
+*/
+        
         if(editorRef.current){
             
             quillRef.current.on('text-change', () => {
