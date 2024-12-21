@@ -41,12 +41,21 @@ const App = () => {
         return () => socket.off("dataUpdate");
     }, []);
 
+<<<<<<< HEAD
+    useEffect(() => {
+        // Fetch initial data
+        fetch("http://localhost:4000/data")
+            .then((res) => res.json())
+            .then((data) => setSavedData(data));
+    }, []);
+=======
     // useEffect(() => {
     //     // Fetch initial data
     //     fetch("http://localhost:4000/data")
     //         .then((res) => res.json())
     //         .then((data) => setSavedData(data));
     // }, []);
+>>>>>>> upstream/main
 
     return (
         <Router>
