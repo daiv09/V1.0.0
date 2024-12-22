@@ -29,7 +29,9 @@ const Signup = () => {
             return;
         } 
         try {
-            await axios.post("http://localhost:4000/signup", { username, password });
+            //genrate the   Jwt  Token as  the   USer  singup  
+            const  response=  await axios.post("http://localhost:4000/signup", { username, password });
+            localStorage.setItem("token", response.data.token);
             Toastify({
                 text: "User created successfully !",
                 duration: 3000, // Time in ms
