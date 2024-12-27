@@ -1,0 +1,173 @@
+/* Home.css */
+
+/* General Body Styling */
+body {
+    background-color: #f7f7f7; /* Soft light background for the page */
+    color: #333; /* Darker text for better readability */
+    /* overflow: hidden; */
+}
+
+.feature-icon {
+    width: 150px;  /* Set exact width */
+    height: 150px; /* Set exact height */
+    object-fit: cover; /* Ensures the image fits while maintaining aspect ratio */
+    border-radius: 10px; /* Optional for rounded corners */
+}
+
+/* Left Content Styling */
+.col-md-6.text-animation {
+    background-color: #f0f8ff; /* Light blue background */
+    padding: 30px;
+    border-radius: 10px;
+/* 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /*Soft shadow for depth  
+*/
+}
+.hover-scale {
+    transition: transform 0.3s ease-in-out;
+}
+
+.hover-scale:hover {
+    transform: scale(1.05);
+}
+
+.hover-zoom {
+    transition: transform 0.3s ease-in-out;
+}
+
+.hover-zoom:hover {
+    transform: scale(1.1);
+}
+
+
+/* Heading Styling */
+h1.display-4, h1.display-2 {
+    color: #2d87f0; /* Bright blue color for the heading */
+    font-weight: bold;
+}
+
+/* Paragraph Text Styling */
+p.lead {
+    color: #555; /* Slightly lighter text color */
+}
+
+/* Button Styling */
+.button-group a {
+    /* border-radius: 50px; */
+    transition: transform 0.3s ease-in-out;
+}
+
+.button-group a:hover {
+    /* transform: translateY(-3px); Button hover effect */
+}
+
+/* Primary Button */
+.btn-primary {
+    background-color: #2d87f0; /* Blue color for primary button */
+    border-color: #2d87f0;
+    text-transform: uppercase; /* Make text uppercase */
+}
+
+/* Gradient Text Effect */
+.gradient-text {
+    background: linear-gradient(to right, #0066cc, #00bcd4); /* Gradient background */
+    -webkit-background-clip: text; /* Clip the background to the text */
+    color: transparent; /* Make the text color transparent */
+    font-weight: bold;
+    font-size: 3rem; /* Adjust font size if needed */
+    text-transform: uppercase;
+}
+
+
+.btn-primary:hover {
+    background-color: #1a6ab4; /* Darker blue on hover */
+    border-color: #1a6ab4;
+}
+
+/* Link Button (Signup) */
+.btn-link {
+    color: #2d87f0; /* Matching blue for link button */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.btn-link:hover {
+    color: #1a6ab4; /* Darker blue on hover */
+}
+
+/* Right Content (Image Area) */
+.col-md-6.text-center {
+    padding: 30px;
+    background-color: #ffffff; /* White background to contrast the left section */
+    border-radius: 10px;
+}
+
+.image-animation {
+    opacity: 0;
+    animation: fadeIn 1.5s forwards;
+    animation-delay: 2s;
+    border-radius: 8px; /* Rounded corners for the image */
+}
+
+/* Fade-In Animation */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Animation for Button */
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation for Text */
+.text-animation {
+    opacity: 0;
+    animation: fadeIn 1.5s forwards;
+}
+
+.text-animation:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.text-animation:nth-child(3) {
+    animation-delay: 1s;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 20px;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .button-group a {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+    .btn {
+        width: 100%;
+        margin: 5px 0;
+    }
+}
