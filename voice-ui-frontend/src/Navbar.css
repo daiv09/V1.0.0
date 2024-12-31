@@ -1,0 +1,67 @@
+/* Navbar Styling */
+.navbar {
+    background: linear-gradient(to right, #0066cc, #00bcd4); /* Gradient background */
+    padding: 1rem 1.5rem; /* Add padding */
+}
+
+.navbar-brand {
+    font-size: 1.8rem; /* Larger font size */
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: white !important;
+    transition: color 0.3s ease-in-out;
+}
+
+.navbar-brand:hover {
+    color: #ffcc00 !important; /* Gold color on hover */
+}
+
+.navbar-toggler {
+    border: none;
+    background-color: transparent;
+}
+
+.navbar-toggler-icon {
+    background-color: white;
+}
+
+.navbar-nav .nav-item {
+    margin: 0 10px; /* Space out items */
+}
+
+.nav-link {
+    font-size: 1.1rem; /* Font size for better readability */
+    color: white !important;
+    transition: color 0.3s ease-in-out;
+}
+
+.nav-link:hover {
+    color: #ffcc00 !important; /* Gold color on hover */
+}
+
+.navbar-nav .btn-link {
+    font-size: 1.1rem;
+    color: white !important;
+    padding: 0;
+    margin: 0;
+}
+
+.navbar-nav .btn-link:hover {
+    color: #ffcc00 !important; /* Gold color on hover */
+}
+
+.navbar-nav .active .nav-link {
+    color: #ffcc00 !important; /* Active link color */
+}
+
+/* Mobile view adjustments */
+@media (max-width: 768px) {
+    .navbar-nav {
+        text-align: center;
+    }
+
+    .navbar-nav .nav-item {
+        margin: 10px 0;
+    }
+}
