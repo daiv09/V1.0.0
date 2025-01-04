@@ -1,4 +1,3 @@
-
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -120,8 +119,6 @@ app.delete("/data/:id", authenticateToken, async (req, res) => {
     }
 });
 
-// 
-
 // Socket.io
 io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
@@ -141,4 +138,3 @@ io.on("connection", (socket) => {
 // Start Server
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-

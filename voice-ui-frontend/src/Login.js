@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { useState } from "react";
 import axios from "axios";
 import img from "./img3.png";
@@ -52,14 +51,17 @@ const Login = () => {
     };
 
     return (
-        <div className="container mt-5">
-            <div className="row">
+        <div className="container mt-2">
+            <div className="row align-items-center">
                 <div className="col-md-6">
                     <h1>Login</h1>
+                    
                     <p>Welcome back! Please log in to your account to access your dashboard and personalized features.</p>
-                    <div className="form-group">
-                        <label>Username</label>
+                    <div className="form-group mb-3">
+                        <label htmlFor="username">Username</label>
                         <input
+                            id="username"
+                            type="text"
                             className="form-control"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
@@ -67,165 +69,73 @@ const Login = () => {
                         />
                     </div>
                     <p className="mt-2">Your username is the one you used when signing up for this service.</p>
-                    <div className="form-group">
-                        <label>Password</label>
+                    <div className="form-group mb-3">
+                        <label htmlFor="password">Password</label>
                         <input
+                            id="password"
                             type="password"
                             className="form-control"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
-                    <p className="mt-2">Ensure your password is correct. If you've forgotten it, <a href="/forgot-password" >click here</a> to reset.
-                    {/* navigate("/forgot"); */}
-                    </p>
+                    <p className="mt-2">Ensure your password is correct. If you've forgotten it, <a href="/forgot-password">click here</a> to reset.</p>
                     <button
-                        className="btn btn-primary mt-3"
+                        className="btn btn-primary  mt-3"
                         onClick={handleLogin}
                         disabled={isLoading}
                     >
                         {isLoading ? "Logging in..." : "Login"}
                     </button>
-                    <p className="mt-3">
+                    <p className="mt-3 text-center">
                         Don't have an account? <a href="/signup">Sign up here</a>.
                     </p>
                 </div>
-                <div className="col-md-6">
+                <div className="col-md-6 text-center">
                     <img
                         src={img}
                         alt="Placeholder"
-                        className="img-fluid rounded"
-                        // style={{ maxHeight: "500px" }}
-                        style={{ maxHeight: "500px", width: "100%" }}
+                        className="img-fluid rounded shadow-lg"
+                        style={{ maxHeight: "450px", width: "100%", objectFit: "cover" }}
                     />
-                    <p className="mt-3 text-center">
+                    <p className="mt-3" style={{ visibility: 'visible', fontSize: '16px', fontWeight: '600', marginTop: '10px' }}>
                         Access your account to view reports, manage tasks, and stay updated!
                     </p>
                 </div>
             </div>
-        </div>
-    );
-};
 
-export default Login;
-=======
-import React, { useState } from "react";
-import axios from "axios";
-
-import Toastify from "toastify-js";
-import "toastify-js/src/toastify.css";
-import { useNavigate } from "react-router-dom";
-
-const Login = () => {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    // const [isLoading, setIsLoading] = useState(false); // For loading state
-    const navigate = useNavigate();
-    
-    const handleLogin = async () => {
-        // Form validation
-        // if (!username || !password) {
-        //     Toastify({
-        //         text: "Please fill in both username and password.",
-        //         duration: 3000,
-        //         gravity: "top",
-        //         position: "right",
-        //         backgroundColor: "#ffc107",
-        //     }).showToast();
-        //     return;
-        // }
-
-        // setIsLoading(true); // Set loading state to true
-
-        // try {
-        //     const response = await axios.post("http://localhost:4000/login", { username, password });
-        //     localStorage.setItem("token", response.data.token);
-
-        //     toast.success("Login successful!", { position: "top-right" });
-        //     navigate("/dashboard");
-        // } 
-        try {
-            const response = await axios.post("http://localhost:4000/login", { username, password });
-            localStorage.setItem("token", response.data.token);
-                Toastify({
-                    text: "Login successful !",
-                    duration: 3000, 
-                    gravity: "top",
-                    position: "right",
-                    backgroundColor: "#28a745",
-                }).showToast();
-                navigate("/dashboard");
-        }
-        // catch (error) {
-        //     toast.error("Login failed. Please check your credentials.", { position: "top-right" });
-        // }
-        catch (error) {
-            if (error.response.status === 401) {
-                // Unauthorized - Wrong credentials
-                Toastify({
-                  text: "Login failed. Incorrect username or password.",
-                  duration: 3000,
-                  gravity: "top",
-                  position: "right",
-                  backgroundColor: "#dc3545",
-                }).showToast();
-              } else {
-                // General server or network error
-                Toastify({
-                  text: "An error occurred. Please try again later.",
-                  duration: 3000,
-                  gravity: "top",
-                  position: "right",
-                  backgroundColor: "#ffc107",
-                }).showToast();
-              }
-          console.error();
-        } 
-        
-    };
-
-    return (
-        <div className="container mt-5">
-            <div className="row">
-                <div className="col-md-6">
-                    <h1>Login</h1>
-                    <div className="form-group">
-                        <label>Username</label>
-                        <input
-                        className="form-control"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Password</label>
-                        <input
-                            type="password"
-                            className="form-control"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
-                        <button
-                            className="btn btn-primary mt-3"
-                            onClick={handleLogin}
-                            // disabled={isLoading} // Disable button while loading
-                        >
-                            Login
-                        </button>
-                    </div>
-                    <div className="col-md-6">
-                    <img
-                        src="https://via.placeholder.com/400" // Placeholder image URL
-                        alt="Placeholder"
-                        className="img-fluid" // Make the image responsive
-                    />
+            <section className="new-features py-5">
+    <div className="container text-center">
+        <h2 className="display-4 text-gradient fw-bold mb-4">New Features and Updates</h2>
+        <p className="lead text-secondary px-lg-5 mx-auto mb-4">
+            We’re always working to improve your experience! Check out the latest features and updates designed to enhance your productivity and workflow.
+        </p>
+        <div className="row mt-5">
+            <div className="col-md-4">
+                <div className="feature-card p-4 bg-light shadow rounded">
+                    <h4 className="text-primary">AI-Powered Voice Recognition</h4>
+                    <p>Leverage cutting-edge AI technology for more accurate and responsive voice commands. Get more done with effort!</p>
                 </div>
             </div>
-            {/* <ToastContainer /> */}
+            <div className="col-md-4">
+                <div className="feature-card p-4 bg-light shadow rounded">
+                    <h4 className="text-primary">Real-Time Collaboration</h4>
+                    <p>Collaborate seamlessly with your team by sharing tasks and updates in real-time, all powered by voice commands.</p>
+                </div>
+            </div>
+            <div className="col-md-4">
+                <div className="feature-card p-4 bg-light shadow rounded">
+                    <h4 className="text-primary">Enhanced Security</h4>
+                    <p>We've upgraded our security protocols to ensure that your data is always protected. Enjoy peace of mind while working.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
         </div>
     );
 };
 
 export default Login;
->>>>>>> upstream/main
