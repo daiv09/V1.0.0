@@ -1,6 +1,6 @@
-<<<<<<< HEAD
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import "./Navbar.css"; // Custom CSS for additional styling
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -10,11 +10,13 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="navbar navbar-expand-lg navbar-light bg-primary">
+        <nav className="navbar navbar-expand-lg navbar-light bg-primary bg-gradient shadow-sm">
             <div className="container">
-                <Link className="navbar-brand text-white" to="/">Voice UI</Link>
+                <Link className="navbar-brand text-black fw-bold fs-4" to="/">
+                    Voice UI
+                </Link>
                 <button
-                    className="navbar-toggler"
+                    className="navbar-toggler border-0"
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#navbarNav"
@@ -24,24 +26,33 @@ const Navbar = () => {
                 >
                     <span className="navbar-toggler-icon"></span>
                 </button>
-                <div className="collapse navbar-collapse" id="navbarNav">
-                    <ul className="navbar-nav ms-auto">
+                <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
+                    <ul className="navbar-nav align-items-center">
                         {!localStorage.getItem("token") ? (
                             <>
                                 <li className="nav-item">
-                                    <Link className="nav-link  text-white" to="/login">Login</Link>
+                                    <Link className="nav-link text-black px-3 rounded-pill" to="/login">
+                                        Login
+                                    </Link>
                                 </li>
                                 <li className="nav-item">
-                                    <Link className="nav-link  text-white" to="/signup">Signup</Link>
+                                    <Link className="nav-link text-black px-3 rounded-pill" to="/signup">
+                                        Signup
+                                    </Link>
                                 </li>
                             </>
                         ) : (
                             <>
                                 <li className="nav-item">
-                                    <Link className="nav-link  text-white" to="/dashboard">Dashboard</Link>
+                                    <Link className="nav-link text-black px-3 rounded-pill" to="/dashboard">
+                                        Dashboard
+                                    </Link>
                                 </li>
                                 <li className="nav-item">
-                                    <button className="btn btn-link nav-link text-white" onClick={handleLogout}>
+                                    <button
+                                        className="btn btn-outline-light nav-link px-3 rounded-pill"
+                                        onClick={handleLogout}
+                                    >
                                         Logout
                                     </button>
                                 </li>
@@ -55,61 +66,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-=======
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-
-const Navbar = () => {
-    const navigate = useNavigate();
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        navigate("/");
-    };
-
-    return (
-        <nav className="navbar navbar-expand-lg navbar-light bg-primary">
-            <div className="container">
-                <Link className="navbar-brand text-white" to="/">Voice UI</Link>
-                <button
-                    className="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbarNav"
-                    aria-controls="navbarNav"
-                    aria-expanded="false"
-                    aria-label="Toggle navigation"
-                >
-                    <span className="navbar-toggler-icon"></span>
-                </button>
-                <div className="collapse navbar-collapse" id="navbarNav">
-                    <ul className="navbar-nav ms-auto">
-                        {!localStorage.getItem("token") ? (
-                            <>
-                                <li className="nav-item">
-                                    <Link className="nav-link  text-white" to="/login">Login</Link>
-                                </li>
-                                <li className="nav-item">
-                                    <Link className="nav-link  text-white" to="/signup">Signup</Link>
-                                </li>
-                            </>
-                        ) : (
-                            <>
-                                <li className="nav-item">
-                                    <Link className="nav-link  text-white" to="/dashboard">Dashboard</Link>
-                                </li>
-                                <li className="nav-item">
-                                    <button className="btn btn-link nav-link text-white" onClick={handleLogout}>
-                                        Logout
-                                    </button>
-                                </li>
-                            </>
-                        )}
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    );
-};
-
-export default Navbar;
->>>>>>> upstream/main
