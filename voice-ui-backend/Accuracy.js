@@ -10,7 +10,9 @@ const levenshtein = require('fast-levenshtein');
 const natural = require('natural');
 const cosineSimilarity = require('cosine-similarity');
 const wer = require('wer');
-const sqlite3 = require('sqlite3').verbose();
+const mysql = require('mysql2');
+const PDFDocument = require('pdfkit');
+
 
 const { createObjectCsvWriter } = require('csv-writer');
 
@@ -19,8 +21,8 @@ app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
 
-const WIT_API_TOKEN = 'D74M55VRUAEAVLLO4744KB7OPQFBI3WS-test'; // Replace with your Wit.ai token
-ffmpeg.setFfmpegPath("/usr/bin/ffmpeg");
+const WIT_API_TOKEN = ''; // Replace with your Wit.ai token
+ffmpeg.setFfmpegPath("/usr/bin/ffmpeg"); //path  to the   
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -111,6 +113,7 @@ const clearChunksFolder = (folderPath) => {
         });
     }
 };
+/* Main  Worlking  Function
 app.post('/upload', upload.single('audio'), async (req, res) => {
     const inputAudio = req.file.path;
     const selectedLanguage = req.body.language;  // Get the selected language
@@ -127,7 +130,18 @@ app.post('/upload', upload.single('audio'), async (req, res) => {
         .output(`${chunkFolder}/chunk-%03d.mp3`)
         .audioCodec('libmp3lame')
         .outputOptions([`-f segment`, `-segment_time ${chunkDuration}`])
-        .on('end', async () => {
+        .on('start', () => {
+                console.log('Started chunk generation...');
+            })
+            .on('progress', async (progress) => {
+                // Monitor progress (optional)
+                console.log(`Progress: ${progress.timemark}`);
+            })
+            .on('error', (err) => {
+                console.error('Error during FFmpeg processing:', err.message);
+                res.status(500).json({ error: 'Failed to process audio.' });
+            })
+            .on('end', async () => {
             console.log('Audio split into chunks.');
 
             const chunkFiles = fs.readdirSync(chunkFolder).map(file => path.join(chunkFolder, file));
@@ -152,7 +166,160 @@ app.post('/upload', upload.single('audio'), async (req, res) => {
             res.status(500).json({ error: 'Failed to process audio.' });
         })
         .run();
+});*/
+app.post('/upload', upload.single('audio'), async (req, res) => {
+    try {
+        const { default: pLimit } = await import('p-limit'); 
+        const inputAudio = req.file.path;
+        const selectedLanguage = req.body.language; // Get the selected language
+        const chunkFolder = path.join(__dirname, 'chunks');
+        const chunkDuration = 3; // Chunk duration in seconds
+        const maxConcurrentTranscriptions = 5; // Adjust based on system capabilities
+
+        // Clear old chunks
+        clearChunksFolder(chunkFolder);
+        if (!fs.existsSync(chunkFolder)) {
+            fs.mkdirSync(chunkFolder, { recursive: true });
+        }
+
+        console.log('Starting FFmpeg to split audio into chunks...');
+        await new Promise((resolve, reject) => {
+            ffmpeg(inputAudio)
+                .output(`${chunkFolder}/chunk-%03d.mp3`)
+                .audioCodec('libmp3lame')
+                .outputOptions([`-f segment`, `-segment_time ${chunkDuration}`])
+                .on('start', () => {
+                    console.log('FFmpeg started processing...');
+                })
+                .on('error', (err) => {
+                    console.error('Error during FFmpeg processing:', err.message);
+                    reject(new Error('FFmpeg failed to process the audio.'));
+                })
+                .on('end', () => {
+                    console.log('FFmpeg finished processing.');
+                    resolve();
+                })
+                .run();
+        });
+
+        console.log('FFmpeg completed successfully. Starting chunk transcription...');
+        const chunkFiles = fs.readdirSync(chunkFolder)
+            .filter(file => file.endsWith('.mp3'))
+            .map(file => path.join(chunkFolder, file));
+
+        // Limit the number of concurrent transcriptions
+        const limit = pLimit(maxConcurrentTranscriptions);
+
+        const transcriptionPromises = chunkFiles.map(chunk =>
+            limit(async () => {
+                console.log(`Transcribing chunk: ${chunk}`);
+                try {
+                    const transcription = await transcribeChunk(chunk, selectedLanguage);
+                    return {
+                        chunk: path.basename(chunk),
+                        transcription,
+                    };
+                } catch (err) {
+                    console.error(`Failed to transcribe chunk ${chunk}:`, err.message);
+                    return {
+                        chunk: path.basename(chunk),
+                        transcription: 'Error during transcription',
+                    };
+                }
+            })
+        );
+
+        // Wait for all transcriptions to complete
+        const transcriptions = await Promise.all(transcriptionPromises);
+
+        console.log('All chunks processed successfully.');
+        console.log(transcriptions);
+        res.json({
+            message: 'Audio processed and transcribed successfully.',
+            transcriptions,
+        });
+    } catch (err) {
+        console.error('Error processing request:', err.message);
+        res.status(500).json({
+            error: 'An error occurred while processing the audio.',
+            details: err.message,
+        });
+    }
 });
+// app.post('/upload', upload.single('audio'), async (req, res) => {
+//     const inputAudio = req.file.path;
+//     const selectedLanguage = req.body.language; // Get the selected language
+//     const chunkFolder = path.join(__dirname, 'chunks');
+//     const chunkDuration = 3; // Chunk duration in seconds
+
+//     // Clear old chunks
+//     clearChunksFolder(chunkFolder);
+//     if (!fs.existsSync(chunkFolder)) {
+//         fs.mkdirSync(chunkFolder, { recursive: true });
+//     }
+
+//     const transcriptions = []; // To store transcription results
+
+//     try {
+//         const ffmpegProcess = ffmpeg(inputAudio)
+//             .output(`${chunkFolder}/chunk-%03d.mp3`)
+//             .audioCodec('libmp3lame')
+//             .outputOptions([`-f segment`, `-segment_time ${chunkDuration}`])
+//             .on('start', () => {
+//                 console.log('Started chunk generation...');
+//             })
+//             .on('progress', async (progress) => {
+//                 // Monitor progress (optional)
+//                 console.log(`Progress: ${progress.timemark}`);
+//             })
+//             .on('error', (err) => {
+//                 console.error('Error during FFmpeg processing:', err.message);
+//                 res.status(500).json({ error: 'Failed to process audio.' });
+//             });
+
+//         // Listen for generated files
+//         ffmpegProcess.on('end', async () => {
+//             console.log('Finished chunk generation.');
+
+//             // Process chunks as they are created
+//             const chunkWatcher = fs.watch(chunkFolder, async (eventType, filename) => {
+//                 if (eventType === 'rename' && filename.endsWith('.mp3')) {
+//                     const chunkPath = path.join(chunkFolder, filename);
+
+//                     try {
+//                         console.log(`Processing chunk: ${filename}`);
+//                         const transcription = await transcribeChunk(chunkPath, selectedLanguage);
+//                         transcriptions.push({
+//                             chunk: filename,
+//                             transcription,
+//                         });
+//                     } catch (err) {
+//                         console.error(`Error processing chunk ${filename}:`, err.message);
+//                         transcriptions.push({
+//                             chunk: filename,
+//                             transcription: 'Error transcribing chunk',
+//                         });
+//                     }
+//                 }
+//             });
+
+//             // Wait until all chunks are processed
+//             ffmpegProcess.on('close', () => {
+//                 chunkWatcher.close();
+//                 res.json({
+//                     message: 'Audio processed and transcribed successfully.',
+//                     transcriptions,
+//                 });
+//             });
+//         });
+
+//         // Start FFmpeg
+//         ffmpegProcess.run();
+//     } catch (error) {
+//         console.error('Unexpected error:', error.message);
+//         res.status(500).json({ error: 'Unexpected error occurred.' });
+//     }
+// });
 
 function levenshteinDistance(s1, s2) {
     const m = s1.length;
@@ -206,31 +373,114 @@ app.post('/wer', (req, res) => {
     res.json({ string1, string2, distance });
 });
 
-const db = new sqlite3.Database('./results.db', (err) => {
+// const db = new sqlite3.Database('./results.db', (err) => {
+//     if (err) {
+//         console.error('Error connecting to database', err);
+//     } else {
+//         console.log('Connected to SQLite database.');
+//     }
+// });
+
+// // Create table if not exists
+// db.run(`
+//     CREATE TABLE IF NOT EXISTS results (
+//     id INTEGER PRIMARY KEY AUTOINCREMENT,
+//     Transcription TEXT NOT NULL,
+//     Actual TEXT NOT NULL,
+//     levenshtein_distance INTEGER NOT NULL,
+//     levenshtein_similarity TEXT NOT NULL,
+//     cosine_similarity TEXT NOT NULL,
+//     wer_accuracy TEXT NOT NULL
+// );
+
+// `);
+
+// // Preprocessing function
+// function preprocessString(input) {
+//     return input.toLowerCase().replace(/[^\w\s]/g, '').trim();
+// }
+
+// // Compare API
+// app.post('/compare', (req, res) => {
+//     const { string1, string2 } = req.body;
+
+//     if (!string1 || !string2) {
+//         return res.status(400).json({ error: 'Both string1 and string2 are required.' });
+//     }
+
+//     const str1 = preprocessString(string1);
+//     const str2 = preprocessString(string2);
+
+//     const levenshteinDistance = levenshtein.get(str1, str2);
+//     const levenshteinSimilarity = ((1 - levenshteinDistance / Math.max(str1.length, str2.length)) * 100).toFixed(2);
+
+//     const tokenizer = new natural.WordTokenizer();
+//     const tokens1 = tokenizer.tokenize(str1);
+//     const tokens2 = tokenizer.tokenize(str2);
+//     const allTokens = Array.from(new Set([...tokens1, ...tokens2]));
+//     const vectorize = (tokens) => allTokens.map((token) => tokens.includes(token) ? 1 : 0);
+
+//     const cosineSim = (cosineSimilarity(vectorize(tokens1), vectorize(tokens2)) * 100).toFixed(2);
+
+//     const werAccuracy = ((1 - wer(str1, str2)) * 100).toFixed(2);
+
+//     // Save results to database
+//     const query = `
+//         INSERT INTO results (Transcription, Actual, levenshtein_distance, levenshtein_similarity, cosine_similarity, wer_accuracy)
+//         VALUES (?, ?, ?, ?, ?, ?)
+//     `;
+//     console.log('Inserting values:', [string1, string2, levenshteinDistance, levenshteinSimilarity, cosineSim, werAccuracy]);
+//     db.run(query, [string1, string2, levenshteinDistance, levenshteinSimilarity, cosineSim, werAccuracy], (err) => {
+//         if (err) {
+//             console.error('Error saving to database:', err);
+//             return res.status(500).json({ error: 'Error saving results to the database.' });
+//         }
+
+//         res.json({
+//             levenshtein: { distance: levenshteinDistance, similarity: levenshteinSimilarity + '%' },
+//             cosineSimilarity: cosineSim + '%',
+//             werAccuracy: werAccuracy + '%'
+//         });
+//     });
+
+// });
+
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: '',
+    password: '',
+    database: 'results'
+});
+
+db.connect((err) => {
     if (err) {
-        console.error('Error connecting to database', err);
+        console.error('Error connecting to MySQL database:', err);
     } else {
-        console.log('Connected to SQLite database.');
+        console.log('Connected to MySQL database.');
     }
 });
 
-// Create table if not exists
-db.run(`
-    CREATE TABLE IF NOT EXISTS results (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        string1 TEXT NOT NULL,
-        string2 TEXT NOT NULL,
-        levenshtein_distance INTEGER NOT NULL,
-        levenshtein_similarity TEXT NOT NULL,
-        cosine_similarity TEXT NOT NULL,
-        wer_accuracy TEXT NOT NULL,
+db.query(`
+    CREATE TABLE IF NOT EXISTS Test (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        Transcription TEXT NOT NULL,
+        Actual TEXT NOT NULL,
+        levenshtein_distance INT NOT NULL,
+        levenshtein_similarity VARCHAR(255) NOT NULL,
+        cosine_similarity VARCHAR(255) NOT NULL,
+        wer_accuracy VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
-`);
-
+`, (err) => {
+    if (err) {
+        console.error('Error creating table:', err);
+    } else {
+        console.log('Table "results" is ready.');
+    }
+});
 // Preprocessing function
 function preprocessString(input) {
-    return input.toLowerCase().replace(/[^\w\s]/g, '').trim();
+    return input.toLowerCase().replace(/[^\w\s]/g, '').trim(); 
 }
 
 // Compare API
@@ -259,61 +509,100 @@ app.post('/compare', (req, res) => {
 
     // Save results to database
     const query = `
-        INSERT INTO results (string1, string2, levenshtein_distance, levenshtein_similarity, cosine_similarity, wer_accuracy)
-        VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    db.run(query, [string1, string2, levenshteinDistance, levenshteinSimilarity, cosineSim, werAccuracy], (err) => {
-        if (err) {
-            console.error('Error saving to database:', err);
-            return res.status(500).json({ error: 'Error saving results to the database.' });
-        }
+    INSERT INTO Test (Transcription, Actual, levenshtein_distance, levenshtein_similarity, cosine_similarity, wer_accuracy)
+    VALUES (?, ?, ?, ?, ?, ?)
+`;
 
-        res.json({
-            levenshtein: { distance: levenshteinDistance, similarity: levenshteinSimilarity + '%' },
+db.query(query, [string1, string2, levenshteinDistance, levenshteinSimilarity, cosineSim, werAccuracy], (err, results) => {
+    if (err) {
+        console.error('Error saving to MySQL database:', err);
+        return res.status(500).json({ error: 'Error saving results to the MySQL database.' });
+    }
+
+    // Send JSON response on successful insertion
+    res.json({
+        message: 'Results successfully saved to MySQL database.',
+        insertedId: results.insertId, // MySQL provides the ID of the inserted row
+        data: {
+            levenshtein: { 
+                distance: levenshteinDistance, 
+                similarity: levenshteinSimilarity + '%' 
+            },
             cosineSimilarity: cosineSim + '%',
             werAccuracy: werAccuracy + '%'
-        });
-    });
-});
-
-// Export results to CSV
-app.get('/export', (req, res) => {
-    const query = `SELECT * FROM results`;
-    db.all(query, [], (err, rows) => {
-        if (err) {
-            console.error('Error fetching data:', err);
-            return res.status(500).json({ error: 'Error fetching data from the database.' });
         }
-
-        const csvWriter = createObjectCsvWriter({
-            path: 'results.csv',
-            header: [
-                { id: 'id', title: 'ID' },
-                { id: 'string1', title: 'String 1' },
-                { id: 'string2', title: 'String 2' },
-                { id: 'levenshtein_distance', title: 'Levenshtein Distance' },
-                { id: 'levenshtein_similarity', title: 'Levenshtein Similarity' },
-                { id: 'cosine_similarity', title: 'Cosine Similarity' },
-                { id: 'wer_accuracy', title: 'WER Accuracy' },
-                { id: 'created_at', title: 'Created At' }
-            ]
-        });
-
-        csvWriter.writeRecords(rows)
-            .then(() => {
-                res.download('results.csv', 'results.csv', (err) => {
-                    if (err) {
-                        console.error('Error sending file:', err);
-                    }
-                });
-            })
-            .catch((err) => {
-                console.error('Error writing CSV:', err);
-                res.status(500).json({ error: 'Error generating CSV file.' });
-            });
     });
 });
-// Start the server
+
+});
+// Route to generate PDF
+app.get("/pdf", (req, res) => {
+    const query = "SELECT * FROM Test";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching data: ", err);
+      return res.status(500).send("Error fetching data.");
+    }
+
+    // Create a PDF document
+    const doc = new PDFDocument({ margin: 50 });
+    const filePath = "Test_Report.pdf";
+
+    // Stream to file
+    const stream = fs.createWriteStream(filePath);
+    doc.pipe(stream);
+
+    // Add title
+    doc
+      .fontSize(18)
+      .text("Test Table Report", { align: "center" })
+      .moveDown(1);
+
+    // Loop through results and add content
+    results.forEach((row, index) => {
+      // Add Transcription and Actual Text
+      doc.fontSize(14).text(`Transcription (ID: ${row.id}):`, { continued: true });
+      doc.fontSize(12).text(row.Transcription, { align: 'justify' }).moveDown(1);
+
+      doc.fontSize(14).text(`Actual (ID: ${row.id}):`, { continued: true });
+      doc.fontSize(12).text(row.Actual, { align: 'justify' }).moveDown(1);
+
+      // Add Accuracy Parameters
+      doc.fontSize(14).text("Accuracy Parameters:", { underline: true }).moveDown(0.5);
+
+      // Create a table-like format for accuracy parameters
+      const accuracyData = [
+        { label: "Levenshtein Distance", value: row.levenshtein_distance },
+        { label: "Levenshtein Similarity", value: row.levenshtein_similarity },
+        { label: "Cosine Similarity", value: row.cosine_similarity },
+        { label: "WER Accuracy", value: row.wer_accuracy },
+      ];
+
+      accuracyData.forEach((param) => {
+        doc.fontSize(12).text(`${param.label}:`, { continued: true });
+        doc.fontSize(12).text(param.value, { align: 'left' }).moveDown(0.5);
+      });
+
+      // Add page break if it's not the last row
+      if (index < results.length - 1) {
+        doc.addPage();
+      }
+    });
+
+    // Finalize the PDF and send it
+    doc.end();
+
+    stream.on("finish", () => {
+      res.download(filePath, (err) => {
+        if (err) {
+          console.error("Error downloading PDF: ", err);
+        }
+        fs.unlinkSync(filePath); // Clean up the file after download
+      });
+    });
+  });
+  });
 app.listen(9000, () => {
     console.log(`Server running on http://localhost:9000`);
 });
