@@ -10,8 +10,16 @@ const levenshtein = require('fast-levenshtein');
 const natural = require('natural');
 const cosineSimilarity = require('cosine-similarity');
 const wer = require('wer');
+const  speechscore = require("word-error-rate");
 const mysql = require('mysql2');
 const PDFDocument = require('pdfkit');
+//import { AssemblyAI } from 'assemblyai'
+
+// const client = new AssemblyAI({
+ 
+// })
+
+ const  Assembly_api_Key=  '';
 
 
 const { createObjectCsvWriter } = require('csv-writer');
@@ -22,7 +30,7 @@ app.use(express.json());
 app.use(bodyParser.json());
 
 const WIT_API_TOKEN = ''; // Replace with your Wit.ai token
-ffmpeg.setFfmpegPath("/usr/bin/ffmpeg"); //path  to the   
+ffmpeg.setFfmpegPath("");  //path to your  system  ffmpeg
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -106,6 +114,9 @@ const transcribeChunk = async (chunkPath,language ) => {
         return 'Error during transcription';
     }
 };
+
+
+
 const clearChunksFolder = (folderPath) => {
     if (fs.existsSync(folderPath)) {
         fs.readdirSync(folderPath).forEach(file => {
@@ -167,6 +178,9 @@ app.post('/upload', upload.single('audio'), async (req, res) => {
         })
         .run();
 });*/
+/*
+this  api make  the  time to  reduct  by  less  time
+*/
 app.post('/upload', upload.single('audio'), async (req, res) => {
     try {
         const { default: pLimit } = await import('p-limit'); 
@@ -246,81 +260,6 @@ app.post('/upload', upload.single('audio'), async (req, res) => {
         });
     }
 });
-// app.post('/upload', upload.single('audio'), async (req, res) => {
-//     const inputAudio = req.file.path;
-//     const selectedLanguage = req.body.language; // Get the selected language
-//     const chunkFolder = path.join(__dirname, 'chunks');
-//     const chunkDuration = 3; // Chunk duration in seconds
-
-//     // Clear old chunks
-//     clearChunksFolder(chunkFolder);
-//     if (!fs.existsSync(chunkFolder)) {
-//         fs.mkdirSync(chunkFolder, { recursive: true });
-//     }
-
-//     const transcriptions = []; // To store transcription results
-
-//     try {
-//         const ffmpegProcess = ffmpeg(inputAudio)
-//             .output(`${chunkFolder}/chunk-%03d.mp3`)
-//             .audioCodec('libmp3lame')
-//             .outputOptions([`-f segment`, `-segment_time ${chunkDuration}`])
-//             .on('start', () => {
-//                 console.log('Started chunk generation...');
-//             })
-//             .on('progress', async (progress) => {
-//                 // Monitor progress (optional)
-//                 console.log(`Progress: ${progress.timemark}`);
-//             })
-//             .on('error', (err) => {
-//                 console.error('Error during FFmpeg processing:', err.message);
-//                 res.status(500).json({ error: 'Failed to process audio.' });
-//             });
-
-//         // Listen for generated files
-//         ffmpegProcess.on('end', async () => {
-//             console.log('Finished chunk generation.');
-
-//             // Process chunks as they are created
-//             const chunkWatcher = fs.watch(chunkFolder, async (eventType, filename) => {
-//                 if (eventType === 'rename' && filename.endsWith('.mp3')) {
-//                     const chunkPath = path.join(chunkFolder, filename);
-
-//                     try {
-//                         console.log(`Processing chunk: ${filename}`);
-//                         const transcription = await transcribeChunk(chunkPath, selectedLanguage);
-//                         transcriptions.push({
-//                             chunk: filename,
-//                             transcription,
-//                         });
-//                     } catch (err) {
-//                         console.error(`Error processing chunk ${filename}:`, err.message);
-//                         transcriptions.push({
-//                             chunk: filename,
-//                             transcription: 'Error transcribing chunk',
-//                         });
-//                     }
-//                 }
-//             });
-
-//             // Wait until all chunks are processed
-//             ffmpegProcess.on('close', () => {
-//                 chunkWatcher.close();
-//                 res.json({
-//                     message: 'Audio processed and transcribed successfully.',
-//                     transcriptions,
-//                 });
-//             });
-//         });
-
-//         // Start FFmpeg
-//         ffmpegProcess.run();
-//     } catch (error) {
-//         console.error('Unexpected error:', error.message);
-//         res.status(500).json({ error: 'Unexpected error occurred.' });
-//     }
-// });
-
 function levenshteinDistance(s1, s2) {
     const m = s1.length;
     const n = s2.length;
@@ -373,83 +312,13 @@ app.post('/wer', (req, res) => {
     res.json({ string1, string2, distance });
 });
 
-// const db = new sqlite3.Database('./results.db', (err) => {
-//     if (err) {
-//         console.error('Error connecting to database', err);
-//     } else {
-//         console.log('Connected to SQLite database.');
-//     }
-// });
 
-// // Create table if not exists
-// db.run(`
-//     CREATE TABLE IF NOT EXISTS results (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     Transcription TEXT NOT NULL,
-//     Actual TEXT NOT NULL,
-//     levenshtein_distance INTEGER NOT NULL,
-//     levenshtein_similarity TEXT NOT NULL,
-//     cosine_similarity TEXT NOT NULL,
-//     wer_accuracy TEXT NOT NULL
-// );
-
-// `);
-
-// // Preprocessing function
-// function preprocessString(input) {
-//     return input.toLowerCase().replace(/[^\w\s]/g, '').trim();
-// }
-
-// // Compare API
-// app.post('/compare', (req, res) => {
-//     const { string1, string2 } = req.body;
-
-//     if (!string1 || !string2) {
-//         return res.status(400).json({ error: 'Both string1 and string2 are required.' });
-//     }
-
-//     const str1 = preprocessString(string1);
-//     const str2 = preprocessString(string2);
-
-//     const levenshteinDistance = levenshtein.get(str1, str2);
-//     const levenshteinSimilarity = ((1 - levenshteinDistance / Math.max(str1.length, str2.length)) * 100).toFixed(2);
-
-//     const tokenizer = new natural.WordTokenizer();
-//     const tokens1 = tokenizer.tokenize(str1);
-//     const tokens2 = tokenizer.tokenize(str2);
-//     const allTokens = Array.from(new Set([...tokens1, ...tokens2]));
-//     const vectorize = (tokens) => allTokens.map((token) => tokens.includes(token) ? 1 : 0);
-
-//     const cosineSim = (cosineSimilarity(vectorize(tokens1), vectorize(tokens2)) * 100).toFixed(2);
-
-//     const werAccuracy = ((1 - wer(str1, str2)) * 100).toFixed(2);
-
-//     // Save results to database
-//     const query = `
-//         INSERT INTO results (Transcription, Actual, levenshtein_distance, levenshtein_similarity, cosine_similarity, wer_accuracy)
-//         VALUES (?, ?, ?, ?, ?, ?)
-//     `;
-//     console.log('Inserting values:', [string1, string2, levenshteinDistance, levenshteinSimilarity, cosineSim, werAccuracy]);
-//     db.run(query, [string1, string2, levenshteinDistance, levenshteinSimilarity, cosineSim, werAccuracy], (err) => {
-//         if (err) {
-//             console.error('Error saving to database:', err);
-//             return res.status(500).json({ error: 'Error saving results to the database.' });
-//         }
-
-//         res.json({
-//             levenshtein: { distance: levenshteinDistance, similarity: levenshteinSimilarity + '%' },
-//             cosineSimilarity: cosineSim + '%',
-//             werAccuracy: werAccuracy + '%'
-//         });
-//     });
-
-// });
 
 const db = mysql.createConnection({
     host: 'localhost',
     user: '',
     password: '',
-    database: 'results'
+    database: ''
 });
 
 db.connect((err) => {
@@ -505,7 +374,9 @@ app.post('/compare', (req, res) => {
 
     const cosineSim = (cosineSimilarity(vectorize(tokens1), vectorize(tokens2)) * 100).toFixed(2);
 
-    const werAccuracy = ((1 - wer(str1, str2)) * 100).toFixed(2);
+    const werRaw = speechscore.wordErrorRate(str1, str2); // WER returns a value like 0.3816
+const werAccuracy = ((1 - werRaw) * 100).toFixed(2); // Converts to percentage
+
 
     // Save results to database
     const query = `
