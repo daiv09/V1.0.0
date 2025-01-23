@@ -4,12 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Connect to MySQL Database
-db_connection = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="Java@123",
-    database="results"
-)
+
 cursor = db_connection.cursor()
 
 # Fetch the data for analysis
