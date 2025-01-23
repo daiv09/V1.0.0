@@ -4,13 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np  # For handling NaN values
 
-# Connect to MySQL Database
-db_connection = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="Java@123",
-    database="results"
-)
+
 cursor = db_connection.cursor()
 
 # Fetch the required data from the database
