@@ -5,13 +5,13 @@ const path = require('path');
 // Create a connection to the database
 const connection = mysql.createConnection({
   host: 'localhost',
-  user: 'root',
-  password: 'Java@123',
-  database: 'results'
+  user: '',
+  password: '',
+  database: ''
 });
 
 // Query to fetch all the data from the Test table
-const query = 'SELECT * FROM Test';
+const query = 'SELECT * FROM ';
 
 // Fetch the data from the database
 connection.query(query, (err, results) => {
