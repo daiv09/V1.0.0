@@ -3,14 +3,7 @@ const readline = require('readline');
 const mysql = require('mysql2/promise');
 
 // MySQL Database Connection Setup
-const dbConfig = {
-    host: 'localhost', // Change this if needed
-    user: 'root',      // Your MySQL username
-    password: 'Java@123',      // Your MySQL password
-    database: 'results', // The database to store data
-};
-
-// Function to parse the TSV file
+Function to parse the TSV file
 const parseTSV = async (filePath) => {
     const results = [];
     const fileStream = fs.createReadStream(filePath);
