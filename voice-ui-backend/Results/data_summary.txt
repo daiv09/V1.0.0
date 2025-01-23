@@ -1,0 +1,5 @@
+Total Records: 150
+Average Levenshtein Distance: 25.96
+Average WER Accuracy: 0.6976583890088052
+Max Levenshtein Distance: 281
+Min Levenshtein Distance: 0
