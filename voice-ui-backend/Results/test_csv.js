@@ -3,12 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Create a connection to the database
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'Java@123',
-  database: 'results'
-});
+
 
 // Query to fetch all the data from the upload_tests table
 const query = 'SELECT * FROM upload_tests';
